@@ -15,11 +15,11 @@ trace_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../data
 tracer = SimpleTracer(trace_path)
 tracer.clear()  # clear previous run
 
-st.set_page_config(page_title="Geography AI Tutor", page_icon=":robot_face:")
+st.set_page_config(page_title="PDF RAG", page_icon=":robot_face:")
 
 # ---- Left panel: PDF upload as knowledge source ----
 with st.sidebar:
-    st.subheader("Knowledge source")
+    st.subheader("PDF source")
     st.caption("Upload a PDF to use as context for answers.")
     uploaded_file = st.file_uploader("Choose a PDF file", type=["pdf"], key="pdf_upload")
 
@@ -61,7 +61,7 @@ SYSTEM_PROMPT = (
 )
 
 # ---- Main area: chat ----
-st.title("Geography AI Tutor")
+st.title("PDF RAG")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
@@ -69,7 +69,7 @@ if "messages" not in st.session_state:
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
-if prompt := st.chat_input("Ask a geography question!"):
+if prompt := st.chat_input("Ask a question based on the uploaded PDF!"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     st.chat_message("user").write(prompt)
 
