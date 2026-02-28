@@ -1,6 +1,6 @@
 import os
-from openai import OpenAI
-# from groq import Groq
+# from openai import OpenAI
+from groq import Groq
 from dotenv import load_dotenv
 
 # ============================================================================
@@ -30,7 +30,7 @@ class LLMClient:
         client = LLMClient(provider="google")
     """
     
-    def __init__(self, provider="openai"):
+    def __init__(self, provider="groq"):
         self.provider = provider
         
         # --- OpenAI (default) ---
@@ -222,22 +222,51 @@ class LLMClient:
             print(f"Error in chat completion from {self.provider}: {e}")
             return None
 
-    def get_embedding(self, text, model="text-embedding-3-small"):
+    def _get_default_embedding_model(self):
+        """Return the default embedding model for the current provider."""
+        defaults = {
+            "openai": "text-embedding-3-small",
+            "groq": "all-MiniLM-L6-v2",  # local model when using Groq (Groq has no working embedding API)
+        }
+        return defaults.get(self.provider, "text-embedding-3-small")
+
+    def _get_groq_embedding_model(self):
+        """Lazy-load sentence-transformers for local embeddings when provider is Groq."""
+        if not hasattr(self, "_groq_embedding_model"):
+            try:
+                from sentence_transformers import SentenceTransformer
+                model_name = self._get_default_embedding_model()
+                self._groq_embedding_model = SentenceTransformer(model_name)
+            except ImportError:
+                raise ImportError(
+                    "For embeddings with provider='groq', install: pip install sentence-transformers"
+                )
+        return self._groq_embedding_model
+
+    def get_embedding(self, text, model=None):
         """
         Get an embedding vector for the text.
         
-        Note: Embeddings are currently only supported via OpenAI.
-        Groq and Anthropic do not offer embedding APIs.
+        OpenAI: text-embedding-3-small (default), via API.
+        Groq: local sentence-transformers (all-MiniLM-L6-v2) — Groq has no embedding API.
         Google has embeddings via a different method (see commented code).
         """
+        if model is None:
+            model = self._get_default_embedding_model()
         try:
             text = text.replace("\n", " ")
             
-            if self.provider in ("openai", "groq", "anthropic"):
+            if self.provider == "openai":
+                from openai import OpenAI
                 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
                 return openai_client.embeddings.create(
                     input=[text], model=model
                 ).data[0].embedding
+            elif self.provider == "groq":
+                # Groq does not offer a working embeddings API; use local model instead.
+                st = self._get_groq_embedding_model()
+                embedding = st.encode(text, convert_to_numpy=True)
+                return embedding.tolist()
             
             # --- Google Gemini Embeddings ---
             #
