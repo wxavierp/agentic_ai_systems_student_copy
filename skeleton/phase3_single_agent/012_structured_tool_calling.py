@@ -38,11 +38,13 @@ def structured_tool_calling_demo():
     print(f"Query: {query}")
     
     try:
+        # Use client's default model so this works with Groq or OpenAI
+        model = client._get_default_model()
         response = client.client.chat.completions.create(
-            model="gpt-3.5-turbo-0125",
+            model=model,
             messages=[{"role": "user", "content": query}],
             tools=tools,
-            tool_choice="auto", 
+            tool_choice="auto",
         )
         
         message = response.choices[0].message
