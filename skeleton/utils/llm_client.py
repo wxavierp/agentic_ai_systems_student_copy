@@ -1,5 +1,6 @@
 import os
-from openai import OpenAI
+# from openai import OpenAI
+from groq import Groq
 from dotenv import load_dotenv
 
 # ============================================================================
@@ -29,7 +30,7 @@ class LLMClient:
         client = LLMClient(provider="google")
     """
     
-    def __init__(self, provider="openai"):
+    def __init__(self, provider="groq"):
         self.provider = provider
         
         # --- OpenAI (default) ---
@@ -40,8 +41,8 @@ class LLMClient:
         # Groq uses the same API format as OpenAI, making it a drop-in replacement.
         # Uncomment the Groq import at the top of this file, then uncomment below:
         #
-        # elif provider == "groq":
-        #     self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+        elif provider == "groq":
+            self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         
         # --- Anthropic ---
         # Anthropic uses a different API format (messages API with system as a parameter).
@@ -77,7 +78,6 @@ class LLMClient:
         Returns:
             str or None: The completion text, or None on error.
         """
-        # Set default model per provider if not specified
         if model is None:
             model = self._get_default_model()
         
@@ -191,7 +191,6 @@ class LLMClient:
             # https://docs.anthropic.com/en/docs/build-with-claude/tool-use
             #
             # elif self.provider == "anthropic":
-            #     # Extract system message if present
             #     system = None
             #     filtered_messages = []
             #     for msg in messages:
@@ -208,7 +207,6 @@ class LLMClient:
             #     if system:
             #         kwargs["system"] = system
             #     if tools:
-            #         # Convert OpenAI tool format to Anthropic format
             #         kwargs["tools"] = [
             #             {
             #                 "name": t["function"]["name"],
@@ -231,28 +229,17 @@ class LLMClient:
         Note: Embeddings are currently only supported via OpenAI.
         Groq and Anthropic do not offer embedding APIs.
         Google has embeddings via a different method (see commented code).
-        
-        Args:
-            text (str): Text to embed.
-            model (str): Embedding model name.
-        
-        Returns:
-            list[float] or None: The embedding vector, or None on error.
         """
         try:
             text = text.replace("\n", " ")
             
-            # --- OpenAI (always used for embeddings, regardless of chat provider) ---
             if self.provider in ("openai", "groq", "anthropic"):
-                # For non-OpenAI providers, we still use OpenAI for embeddings
-                # since Groq/Anthropic don't have embedding APIs
                 openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
                 return openai_client.embeddings.create(
                     input=[text], model=model
                 ).data[0].embedding
             
             # --- Google Gemini Embeddings ---
-            # Google offers its own embedding model.
             #
             # elif self.provider == "google":
             #     result = self.client.embed_content(
@@ -268,12 +255,9 @@ class LLMClient:
     def _get_default_model(self):
         """Return the default model for the current provider."""
         defaults = {
-            "openai": "gpt-4o-mini",
-            # ---------------------------------------------------------------
-            # Default models for alternative providers:
-            # "groq": "llama-3.3-70b-versatile",
+            "openai": "gpt-3.5-turbo",
+            "groq": "llama-3.3-70b-versatile",
             # "anthropic": "claude-sonnet-4-20250514",
             # "google": "gemini-2.0-flash",
-            # ---------------------------------------------------------------
         }
-        return defaults.get(self.provider, "gpt-4o-mini")
+        return defaults.get(self.provider, "gpt-3.5-turbo")
