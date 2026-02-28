@@ -10,16 +10,36 @@ def demonstrate_action_vs_description():
     """
     client = LLMClient()
     
+    print("--- ACTION vs DESCRIPTION DEMO ---\n")
+    
     prompt = "Check the current weather in Tokyo and tell me if I should wear a coat."
     
     print(f"User: {prompt}\n")
+    response = client.get_completion(prompt)
     
-    # TODO: Get completion
+    print(f"LLM Response:\n{response}\n")
+
+    # 1. Weather Request
+    prompt_1 = "Why didn't you check the current weather in Tokyo?"
+    print(f"Goal 1: {prompt_1}")
     
-    # TODO: Observe that the LLM might say "I cannot check the weather..." or 
-    # hallucinate a weather report, but it certainly didn't *actually* check.
+    print("Executing...")
+    response_1 = client.get_completion(prompt_1)
     
-    # TODO: Compare with a prompt that asks to *write code* to check weather
+    print(f"LLM Response:\n{response_1}\n")
+    print("ANALYSIS: Without tools, the LLM is just a text generator. It can describe checking weather, or refuse, but it cannot *act*.")
+    print("-" * 50 + "\n")
+    
+    # 2. Email Request
+    email_target = "boss@company.com"
+    prompt_2 = f"Send an email to {email_target} saying I'll be late."
+    print(f"Goal 2: {prompt_2}")
+    
+    print("Executing...")
+    response_2 = client.get_completion(prompt_2)
+    
+    print(f"LLM Response:\n{response_2}\n")
+    print("ANALYSIS: It generated the *text* of an email, but no email was sent. This is the core limitation agents solve.")
 
 if __name__ == "__main__":
     demonstrate_action_vs_description()

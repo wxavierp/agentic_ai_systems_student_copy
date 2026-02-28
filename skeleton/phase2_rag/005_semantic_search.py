@@ -1,7 +1,7 @@
 import sys
 import os
 import chromadb
-from chromadb.utils import embedding_functions
+import uuid
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from utils.llm_client import LLMClient
@@ -12,46 +12,75 @@ def semantic_search_demo():
     """
     client = LLMClient()
     
-    # 1. Load Documents
-    docs_path = os.path.join(os.path.dirname(__file__), "../../data/sample_documents")
-    # For this demo, let's manually define some chunks if files aren't read, 
-    # but better to read them.
+    print("--- SEMANTIC SEARCH DEMO ---\n")
     
+    # 1. Define Documents
     documents = [
         "The quick brown fox jumps over the lazy dog.",
         "A fast auburn vulpine leaps over a slothful canine.",
-        "Python is a programming language.",
-        "Pythons represent a family of non-venomous snakes.",
-        "The weather in London is often rainy."
+        "Python is a high-level programming language.",
+        "Pythons represent a family of non-venomous snakes found in Africa/Asia.",
+        "The weather in London is often rainy.",
+        "NebulaScale policies on remote work are flexible."
     ]
     
-    print(f"Documents: {len(documents)}")
+    print("Documents:")
+    for i, doc in enumerate(documents):
+        print(f"  {i}: {doc}")
+    print("\n")
     
-    # 2. Initialize Vector DB (Chroma)
-    # TODO: Create a persistent or ephemeral Chroma client
-    # chroma_client = ...
-    # collection = ...
+    # 2. Initialize Vector DB
+    print("Initializing ChromaDB...")
+    chroma_client = chromadb.Client()
     
-    # 3. Add Documents to Collection
-    # TODO: Generate IDs for documents
-    # TODO: Add documents to collection (embeddings are handled automatically by Chroma usually, 
-    # but here we might want to show manual embedding using our client for learning purposes,
-    # or just use Chroma's default.)
+    # Delete collection if exists to start fresh
+    try:
+        chroma_client.delete_collection("demo_collection")
+    except:
+        pass
+        
+    collection = chroma_client.create_collection(name="demo_collection")
     
-    # Let's stick to using our LLMClient for embeddings to understand the process.
-    # ids = [...]
-    # embeddings = [client.get_embedding(doc) for doc in documents]
+    # 3. Generate Embeddings & Index
+    print("Generating embeddings...")
+    ids = [str(uuid.uuid4()) for _ in documents]
+    metadatas = [{"source": "example"} for _ in documents]
     
-    # TODO: Add to collection with embeddings
+    # We use our client to get embeddings to show the "Manual" way
+    # In production, Chroma can use an embedding function automatically
+    embeddings = [client.get_embedding(doc) for doc in documents]
+    
+    collection.add(
+        documents=documents,
+        embeddings=embeddings,
+        metadatas=metadatas,
+        ids=ids
+    )
+    print(f"Indexed {len(documents)} documents.\n")
     
     # 4. Query
-    query = "tell me about snakes"
-    # query_embedding = client.get_embedding(query)
+    queries = [
+        "animal jumping",
+        "coding language",
+        "reptiles",
+        "remote work policy"
+    ]
     
-    # TODO: Query the collection
-    # results = ...
-    
-    # TODO: Print results
-    
+    for q in queries:
+        print(f"Query: '{q}'")
+        q_embedding = client.get_embedding(q)
+        
+        results = collection.query(
+            query_embeddings=[q_embedding],
+            n_results=1
+        )
+        
+        # Results structure: {'ids': [['...']], 'distances': [[...]], 'documents': [['...']], ...}
+        best_match = results['documents'][0][0]
+        distance = results['distances'][0][0] # Lower is better in some metrics, but Chroma uses... wait, default is L2.
+        
+        print(f"  --> Top Match: '{best_match}'")
+        print(f"  --> Distance: {distance:.4f}\n")
+
 if __name__ == "__main__":
     semantic_search_demo()

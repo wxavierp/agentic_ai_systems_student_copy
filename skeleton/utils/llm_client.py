@@ -1,6 +1,6 @@
 import os
-# from openai import OpenAI
-from groq import Groq
+from openai import OpenAI
+# from groq import Groq
 from dotenv import load_dotenv
 
 # ============================================================================
@@ -30,7 +30,7 @@ class LLMClient:
         client = LLMClient(provider="google")
     """
     
-    def __init__(self, provider="groq"):
+    def __init__(self, provider="openai"):
         self.provider = provider
         
         # --- OpenAI (default) ---

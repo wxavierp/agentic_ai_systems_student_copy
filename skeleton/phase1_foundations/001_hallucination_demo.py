@@ -12,45 +12,32 @@ def demonstrate_hallucination():
     """
     client = LLMClient()
     
-    # A completely made up library name that sounds plausible
-    fake_library = "PyGundam-7B"
+    print("--- HALLUCINATION DEMO ---\n")
     
+    # 1. Fake Library
+    fake_library = "PyGundam-7B"
     prompt = f"Tell me about the {fake_library} python library. What are its main features and how do I install it?"
     
-    print(f"User: {prompt}\n")
+    print(f"Query 1: {prompt}")
+    print("..." * 10)
     
-    # TODO: Get completion from LLM
-    # response = client.get_completion(prompt)
+    response = client.get_completion(prompt)
+    print(f"LLM Response:\n{response}\n")
     
-    # TODO: Print the response
-    # print(f"LLM: {response}")
+    print("ANALYSIS: The LLM confidently invented a library that doesn't exist, including installation instructions!")
+    print("-" * 50 + "\n")
+
+    # 2. Fake Historical Event
+    fake_event = "The Great Muffin War of 1892 in London"
+    prompt_2 = f"Who won {fake_event} and what were the casualties?"
     
-    # TODO: Analyze/Discuss why this is dangerous
+    print(f"Query 2: {prompt_2}")
+    print("..." * 10)
     
-    # ========================================================================
-    # BONUS: Compare hallucination across different LLM providers
-    # ========================================================================
-    # Uncomment the blocks below after setting up the provider in llm_client.py
-    # to see how different models handle the same fake library question.
-    #
-    # --- Groq (Llama 3.3) ---
-    # groq_client = LLMClient(provider="groq")
-    # groq_response = groq_client.get_completion(prompt)
-    # print(f"\n--- Groq (Llama 3.3) ---\n{groq_response}")
-    #
-    # --- Google Gemini ---
-    # google_client = LLMClient(provider="google")
-    # google_response = google_client.get_completion(prompt)
-    # print(f"\n--- Google Gemini ---\n{google_response}")
-    #
-    # --- Anthropic (Claude) ---
-    # anthropic_client = LLMClient(provider="anthropic")
-    # anthropic_response = anthropic_client.get_completion(prompt)
-    # print(f"\n--- Anthropic (Claude) ---\n{anthropic_response}")
-    #
-    # Discussion: Which model hallucinates most confidently?
-    # Does any model refuse to answer about a fake library?
-    # ========================================================================
+    response_2 = client.get_completion(prompt_2)
+    print(f"LLM Response:\n{response_2}\n")
+    
+    print("ANALYSIS: Without external grounding (RAG), the model relies on probability, not truth.")
 
 if __name__ == "__main__":
     demonstrate_hallucination()

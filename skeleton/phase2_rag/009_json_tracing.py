@@ -4,33 +4,50 @@ import json
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from utils.llm_client import LLMClient
-from utils.tracer import SimpleTracer
+from utils.tracer import SimpleTracer # Using the one we implemented in trainer/utils
 
 def json_tracing_demo():
     """
-    Demonstrate structured JSON tracing.
+    Demonstrate structured JSON tracing using the SimpleTracer utility.
     """
-    # TODO: Initialize Tracer
-    # tracer = SimpleTracer("my_trace.json")
+    # 1. Init Tracer
+    trace_path = os.path.join(os.path.dirname(__file__), "../../data/traces/demo_trace.json")
+    tracer = SimpleTracer(trace_path)
+    tracer.clear() # clear previous run
+    
+    print(f"Tracing to: {trace_path}")
     
     client = LLMClient()
-    query = "What is 2 + 2?"
+    query = "Summarize the benefits of apples."
     
-    # TODO: Log the initial query
-    # tracer.log_event("query", {"text": query})
+    # 2. Log Start
+    tracer.log_event("session_start", {"query": query})
     
-    # TODO: Log the LLM call
-    # tracer.log_event("llm_start", {"model": "gpt-3.5"})
+    # 3. Simulated Steps
+    # Step 1: Retrieval
+    tracer.log_event("retrieval_start", {"query": query})
+    docs = ["Apples are rich in fiber.", "Apples contain Vitamin C."]
+    tracer.log_event("retrieval_end", {"documents": docs})
     
-    response = client.get_completion(query)
+    context = "\n".join(docs)
     
-    # TODO: Log the Result
-    # tracer.log_event("llm_end", {"response": response})
+    # Step 2: Generation
+    prompt = f"Context: {context}\nQuestion: {query}"
+    tracer.log_event("llm_call", {"prompt": prompt, "model": "gpt-3.5-turbo"})
     
-    print(response)
+    response = client.get_completion(prompt)
+    tracer.log_event("llm_response", {"text": response})
     
-    # TODO: Save trace
-    # tracer.save()
+    print("Response generated.")
+    
+    # 4. Save
+    tracer.save()
+    print("Trace saved.")
+    
+    # 5. Verify
+    with open(trace_path, 'r') as f:
+        data = json.load(f)
+        print(f"Trace contains {len(data)} events.")
 
 if __name__ == "__main__":
     json_tracing_demo()
