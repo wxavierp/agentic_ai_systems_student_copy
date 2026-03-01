@@ -24,15 +24,15 @@ def debate_demo():
     history += f"Proponent: {response_pro}\n"
     
     # Round 2
-    prompt_con = f"{sys_prompt}\nYou are a Pragmatic Tech Lead who loves Python. Argue AGAINST the proponent.\nHistory:\n{history}"
-    response_con = client.get_completion(prompt_con)
-    print(f"CON: {response_con}\n")
-    history += f"Opponent: {response_con}\n"
+    # prompt_con = f"{sys_prompt}\nYou are a Pragmatic Tech Lead who loves Python. Argue AGAINST the proponent.\nHistory:\n{history}"
+    # response_con = client.get_completion(prompt_con)
+    # print(f"CON: {response_con}\n")
+    # history += f"Opponent: {response_con}\n"
     
     # Round 3
-    prompt_judge = f"You are a CTO. Review the debate and make a final decision.\nHistory:\n{history}"
-    decision = client.get_completion(prompt_judge)
-    print(f"JUDGE: {decision}\n")
+    # prompt_judge = f"You are a CTO. Review the debate and make a final decision.\nHistory:\n{history}"
+    # decision = client.get_completion(prompt_judge)
+    # print(f"JUDGE: {decision}\n")
 
 if __name__ == "__main__":
     debate_demo()
